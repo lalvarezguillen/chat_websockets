@@ -1,4 +1,5 @@
 import uuid
+import datetime
 import pymongo
 from pymongo.operations import IndexModel
 from pymodm import connect
@@ -25,4 +26,31 @@ class User(MongoModel):
 
 
 class Conversation(MongoModel):
-    
+    id = fields.CharField(
+        primary_key=True,
+        default=lambda: str(uuid.uuid1())
+    )
+    created_at = fields.DateTimeField(default=datetime.datetime.utcnow)
+    users = fields.ListField(field=fields.ReferenceField(User))
+    class Meta:
+        connection_alias = MONGO_CONN_ALIAS
+        indexes = [
+            IndexModel([('users', pymongo.DESCENDING)])
+        ]
+
+
+class Message(MongoModel):
+    id = fields.CharField(
+        primary_key=True,
+        default=lambda: str(uuid.uuid1())
+    )
+    author = fields.ReferenceField(User)
+    conversation = fields.ReferenceField(Conversation)
+    timestamp = fields.DateTimeField(default=datetime.datetime.utcnow)
+    class Meta:
+        connection_alias = MONGO_CONN_ALIAS
+        indexes = [
+            IndexModel([('author', pymongo.DESCENDING)]),
+            IndexModel([('conversation', pymongo.DESCENDING)]),
+            IndexModel([('timestamp', pymongo.DESCENDING)])
+        ]

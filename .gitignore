@@ -1,3 +1,4 @@
 .env
 .vscode
 .autoenv
+.mypy_cache
