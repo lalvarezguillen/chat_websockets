@@ -5,8 +5,8 @@ from passlib.hash import pbkdf2_sha256
 import jwt
 
 from .models import User
-from .helpers import user_exists
-from .schemas import IdEmail, EmailPassword
+from .schemas import IdEmail, EmailPass
+
 
 APP = Sanic(__name__)
 APP.config.SECRET = 'some secret'
@@ -49,11 +49,11 @@ async def register_user(request):
     Try to create a user and return a JWT token for him/her
     '''
     # TODO: Use a serializer like the one on flask-restful
-    req_data, sch_err = EmailPassword().load(request.data)
+    req_data, sch_err = EmailPass().load(request.data)
     if sch_err:
         return json({'error': sch_err}, status=400)
     email = req_data.lower()
-    if user_exists(email):
+    if User.objects.raw({'email': email}).count():
         err = {
             'error': f'The address "{email}" is already registered'
         }
@@ -72,7 +72,7 @@ async def create_auth_token(request):
     '''
     Authenticate a user and return a JWT for him/her.
     '''
-    req_data, sch_err = EmailPassword().load(request.data)
+    req_data, sch_err = EmailPass().load(request.data)
     if sch_err:
         return json({'error': sch_err}, status=400)
     email = req_data.email.lower()
@@ -94,7 +94,8 @@ async def create_auth_token(request):
 
 
 @APP.route('/chat_room', methods=['PUT'])
-async def create_chat_room
+async def create_chat_room(request):
+    pass
 
 
 @APP.websocket('/ws')
