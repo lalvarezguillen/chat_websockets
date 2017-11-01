@@ -1,0 +1,1 @@
+Toy project to try out Sanic and websockets on python
