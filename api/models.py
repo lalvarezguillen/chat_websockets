@@ -26,6 +26,9 @@ class User(MongoModel):
 
 
 class Conversation(MongoModel):
+    '''
+    One on one chat
+    '''
     id = fields.CharField(
         primary_key=True,
         default=lambda: str(uuid.uuid1())
@@ -47,6 +50,7 @@ class Message(MongoModel):
     author = fields.ReferenceField(User)
     conversation = fields.ReferenceField(Conversation)
     timestamp = fields.DateTimeField(default=datetime.datetime.utcnow)
+    content = fields.CharField()
     class Meta:
         connection_alias = MONGO_CONN_ALIAS
         indexes = [
