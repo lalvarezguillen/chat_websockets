@@ -8,6 +8,7 @@ from .types import (MsgStoreType,
                     MessageType,
                     ConversationType,
                     ConvStoreType)
+from .jobs import save_msg_in_db
 
 
 def login_required(handler: Callable):
@@ -25,8 +26,7 @@ def login_required(handler: Callable):
 
 def store_msg(msg: MessageType, msg_store: MsgStoreType) -> None:
     msg_store[msg['conversation']].append(msg)
-    # TODO: Create a Celery task that stores the msg in DB
-    # store_on_dynamo.delay(msg)
+    save_msg_in_db(msg)
 
 
 def get_conversation(

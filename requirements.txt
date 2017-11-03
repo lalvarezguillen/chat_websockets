@@ -3,3 +3,4 @@ pymodm
 passlib
 pyjwt
 marshmallow
+celery
