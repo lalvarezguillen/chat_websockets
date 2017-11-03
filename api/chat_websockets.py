@@ -1,5 +1,5 @@
 import json
-from typing import Set, Dict, Any
+from typing import Set, Dict, Any, List
 
 from sanic import Sanic
 from sanic.exceptions import abort
@@ -14,7 +14,12 @@ from .schemas import (IdEmail,
                       Interlocutor,
                       ConversationSchema,
                       ChatMessage)
-from .helpers import login_required, store_msg
+from .helpers import (login_required,
+                      store_msg,
+                      get_conversation)
+from .types import (MessageType,
+                    MsgStoreType,
+                    ConvStoreType)
 
 
 APP = Sanic(__name__)
@@ -28,6 +33,7 @@ DUMMY_SUMMARY = {
             'chat_id': 'barack-trump',
             'last_messages': [
                 {
+                    'chat_id': 'barack-trump',
                     'message_id': 'message1',
                     'author': 'barack-obama',
                     'content': 'Your not too bright',
@@ -35,6 +41,7 @@ DUMMY_SUMMARY = {
                     'read': True
                 },
                 {
+                    'chat_id': 'barack-trump',
                     'message_id': 'message2',
                     'author': 'donald-trump',
                     'content': 'Fake news!',
@@ -122,7 +129,9 @@ async def create_chat_room(request, auth_info):
 
 # TODO: Instead of Any it should be type Websocket
 CLIENTS: Dict[str, Any] = {}
-
+# TODO: Instead of Any it should be ConversationType
+CONVERSATIONS: ConvStoreType = {}
+MSG_STORE: MsgStoreType = {}
 
 @APP.websocket('/ws')
 @login_required
@@ -131,19 +140,21 @@ async def ws_test(request, auth_info, wsock):
     while True:
         raw_msg = await wsock.recv()
         msg, sch_err = ChatMessage().load(json.loads(raw_msg))
-        if sch_err:
-            await wsock.send({'errpr': sch_err})
-        store_msg(msg)
-        try:
-            conv = Conversation.objects.get({'_id': msg.conversation})
-        except Conversation.DoesNotExist:
-            continue
-        interlocutor_id = next(user for user in conv.users
-                               if user != msg.author)
-        if interlocutor_id in CLIENTS:
-            interlocutor = CLIENTS[interlocutor_id]
-            if interlocutor.status == 'OPEN':
-                await interlocutor.send(msg)
+        if not sch_err:
+            store_msg(ChatMessage().dump(msg), MSG_STORE)
+            try:
+                conv = get_conversation(
+                    msg['conversation'],
+                    CONVERSATIONS
+                )
+            except Conversation.DoesNotExist:
+                continue
+            interlocutor_id = next(user for user in conv['users']
+                                   if user != msg['author'])
+            if interlocutor_id in CLIENTS:
+                interlocutor = CLIENTS[interlocutor_id]
+                if interlocutor.status == 'OPEN':
+                    await interlocutor.send(msg)
 
 
 if __name__ == '__main__':

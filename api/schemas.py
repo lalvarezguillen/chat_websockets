@@ -17,9 +17,9 @@ class EmailPass(Email):
     password = fields.Str()
 
 
-class ConversationSchema(Schema):
+class ConvSchema(Schema):
     id = fields.Str()
-    created_at = fields.DateTime(required=True)
+    created_at = fields.Int(required=True)
     users = fields.List(fields.Str(),
                         required=True)
 
@@ -30,3 +30,4 @@ class ChatMessage(Schema):
     conversation = fields.Str(required=True)
     timestamp = fields.Str(required=True)
     content = fields.Str(required=True)
+    read = fields.Bool(required=False)

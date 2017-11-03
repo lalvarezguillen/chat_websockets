@@ -2,7 +2,12 @@ from functools import wraps
 from typing import Callable
 import jwt
 from sanic.response import json
-from .schemas import ChatMessage
+from .models import Conversation
+from .schemas import ChatMessage, ConvSchema
+from .types import (MsgStoreType,
+                    MessageType,
+                    ConversationType,
+                    ConvStoreType)
 
 
 def login_required(handler: Callable):
@@ -18,5 +23,20 @@ def login_required(handler: Callable):
         return response
 
 
-def store_msg(msg: ChatMessage) -> None:
-    pass
+def store_msg(msg: MessageType, msg_store: MsgStoreType) -> None:
+    msg_store[msg['conversation']].append(msg)
+    # TODO: Create a Celery task that stores the msg in DB
+    # store_on_dynamo.delay(msg)
+
+
+def get_conversation(
+        conv_id: str,
+        conversations: ConvStoreType
+    ) -> ConversationType:
+    if conv_id not in conversations:
+        conv_obj = Conversation.objects.get({'_id': conv_id})
+        conv = ConvSchema().dump(conv_obj)
+        conversations[conv_id] = conv
+    else:
+        conv = conversations[conv_id]
+    return conv

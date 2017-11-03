@@ -33,7 +33,7 @@ class Conversation(MongoModel):
         primary_key=True,
         default=lambda: str(uuid.uuid1())
     )
-    created_at = fields.DateTimeField(default=datetime.datetime.utcnow)
+    created_at = fields.IntegerField()
     users = fields.ListField(field=fields.ReferenceField(User))
     class Meta:
         connection_alias = MONGO_CONN_ALIAS
