@@ -4,6 +4,7 @@ from typing import Set, Dict, Any, List
 from sanic import Sanic
 from sanic.exceptions import abort
 from sanic.response import json as jsonr
+from sanic.response import text
 from passlib.hash import pbkdf2_sha256
 import jwt
 
@@ -12,7 +13,7 @@ from .schemas import (IdEmail,
                       EmailPass,
                       UserId,
                       Interlocutor,
-                      ConversationSchema,
+                      ConvSchema,
                       ChatMessage)
 from .helpers import (login_required,
                       store_msg,
@@ -57,6 +58,11 @@ DUMMY_SUMMARY = {
 async def get_chat_summary(request):
     print(request)
     return jsonr(DUMMY_SUMMARY)
+
+
+@APP.route('/favicon.ico')
+async def favicon(request):
+    return text('favicon')
 
 
 @APP.route('/user', methods=['PUT'])
@@ -123,13 +129,12 @@ async def create_chat_room(request, auth_info):
     except Conversation.DoesNotExist:
         conv = Conversation(users=users)
         conv.save()
-    serialized_conv = ConversationSchema().dump(conv)
+    serialized_conv = ConvSchema().dump(conv)
     return jsonr(serialized_conv)
 
 
 # TODO: Instead of Any it should be type Websocket
 CLIENTS: Dict[str, Any] = {}
-# TODO: Instead of Any it should be ConversationType
 CONVERSATIONS: ConvStoreType = {}
 MSG_STORE: MsgStoreType = {}
 

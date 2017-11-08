@@ -2,3 +2,4 @@
 .vscode
 .autoenv
 .mypy_cache
+*__pycache__*
